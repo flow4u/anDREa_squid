@@ -30,6 +30,10 @@ df_hashtable = pd.read_csv('workspaces.csv', index_col=0)
 # read the excel
 df_workspaces = pd.read_excel(excel, index_col=0, keep_default_na=False)
 
+# read config.txt
+with open('config_template.txt') as f:
+    config = f.read()
+
 
 # functions to process the data
 
@@ -43,15 +47,20 @@ def ws_exist(workspace):
 
 def create_conf(workspace):
     network = df_hashtable.loc[workspace]['network']
-    return '''# /etc/squid/extra.d is the share
-# whitelist.conf is the file on the share
-acl domains_''' + workspace +''' dstdomain "/etc/squid/extra.d/''' + workspace + '''.domains.acl"
+    new_config = config
+    new_config = new_config.replace('{WORKSPACE}', workspace)
+    new_config = new_config.replace('{NETWORK}', network)
+    return new_config
+    
+#     return '''# /etc/squid/extra.d is the share
+# # whitelist.conf is the file on the share
+# acl domains_''' + workspace +''' dstdomain "/etc/squid/extra.d/''' + workspace + '''.domains.acl"
 
-# Sets the source networking subnet for the workspace rule
-acl workspace_''' + workspace + ''' src ''' + network + '''
+# # Sets the source networking subnet for the workspace rule
+# acl workspace_''' + workspace + ''' src ''' + network + '''
 
-# Allow the workspace network to access domains from workspacelist
-http_access allow workspace_''' + workspace + ''' domains_''' + workspace
+# # Allow the workspace network to access domains from workspacelist
+# http_access allow workspace_''' + workspace + ''' domains_''' + workspace
 
 def create_acl(workspace):
     lst = []
