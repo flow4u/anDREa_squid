@@ -1,0 +1,9 @@
+# /etc/squid/extra.d is the share
+# whitelist.conf is the file on the share
+acl domains_{WORKSPACE} dstdomain "/etc/squid/extra.d/{WORKSPACE}.domains.acl"
+
+# Sets the source networking subnet for the workspace rule
+acl workspace_{WORKSPACE} src {NETWORK}
+
+# Allow the workspace network to access domains from workspacelist
+http_access allow workspace_{WORKSPACE} domains_{WORKSPACE}

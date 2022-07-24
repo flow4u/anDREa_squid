@@ -2,7 +2,8 @@
 
 Instructions:
 
-Use the dws_squid.xlsx as template/example.  To process:
+- Correct any typos in config_template.txt using a plain text editor
+- Use the dws_squid.xlsx as template/example.  To process:
 
 python .\workspace_whitelist.py <filename>.xlsx
 
