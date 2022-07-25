@@ -6,7 +6,7 @@ from tqdm import tqdm
 import validators
 
 # number of repeating characters for printing
-n=60
+n=80
 
 # define default filenames and folders
 FILE_NAME_WRONG_DOMAINS = 'WRONG_DOMAINS.txt'
@@ -70,9 +70,9 @@ def create_acl(workspace):
 
 def list_wrong_domains(domains):
     lst = []
-    for item in domains:
+    for i, item in enumerate(domains):
         if not validators.domain(item):
-            lst.append(item)
+            lst.append(f'{chr(65+i+1)}: {item}')
     return '\n'.join(lst)
                                                    
                                                       
@@ -112,6 +112,7 @@ if len(wrong_domains) != 0:
 missing_workspaces = []
 
 # created the output
+print('\nCreating the .conf and .acl files for known workspaces and valid domains.\n')
 for ws in tqdm(df_workspaces.index):
     if ws_exist(ws):
         save_file(FOLDER_OUTPUT + ws+'.conf', create_conf(ws))
@@ -122,11 +123,11 @@ for ws in tqdm(df_workspaces.index):
 # display and save any missing workspaces
 if len(missing_workspaces) != 0:
     print('\n' + '-'*n)
-    print('The following Workspaces are missing in the hash table:\n\n')
+    print('\nThe following Workspaces are missing in the hash table:\n\n')
     for item in missing_workspaces:
         print(item)
     save_file('MISSING_WORKSPACES.txt', '\n'.join(missing_workspaces))    
-    print(f'\n\n The list is saved in {FILE_NAME_MISSING_WORKSPACES}') 
+    print(f'\n\nThe list is saved in {FILE_NAME_MISSING_WORKSPACES}') 
     
 print('\n' + '-'*n)
 print(f'Finished, files are created in {FOLDER_OUTPUT}')
