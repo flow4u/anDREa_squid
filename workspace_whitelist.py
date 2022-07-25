@@ -74,18 +74,24 @@ except:
     
 
 # process the excel
-n=50
 print('\n\n'+'='*n)
 print(f'Processing: {excel}')
 print('-'*n+'\n')
 
+missing_workspaces = []
 for ws in tqdm(df_workspaces.index):
     if ws_exist(ws):
         save_file(ws+'.conf', create_conf(ws))
         save_file(ws+'.domains.acl', create_acl(ws))
     else:
-        print(f'{ws} does not exist in the hash table')
-                
+        missing_workspaces.append(ws)
+        # print(f'{ws} does not exist in the hash table')
+if len(missing_workspaces) != 0:
+    print('\n' + '-'*n)
+    print('The following Workspaces were not processed, they are missing in the hash table:\n\n')
+    for item in missing_workspaces:
+        print(item)
+        
 print('\n' + '-'*n)
 print(f'Finished, files are created in .\output')
 print('='*n+'\n\n')
