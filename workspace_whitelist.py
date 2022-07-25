@@ -72,7 +72,8 @@ def list_wrong_domains(domains):
     lst = []
     for i, item in enumerate(domains):
         if not validators.domain(item):
-            lst.append(f'{chr(65+i+1)}: {item}')
+            excel_col = f'{chr(65+i//26-1) if i>25 else ""}{chr(65+i%26)}'
+            lst.append(f'{excel_col}: {item}')
     return '\n'.join(lst)
                                                    
                                                       
