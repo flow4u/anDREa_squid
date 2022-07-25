@@ -2,6 +2,7 @@
 import pandas as pd
 import os
 import sys
+from tqdm import tqdm
 
 # number of repeating characters for printing
 n=60
@@ -52,15 +53,6 @@ def create_conf(workspace):
     new_config = new_config.replace('{NETWORK}', network)
     return new_config
     
-#     return '''# /etc/squid/extra.d is the share
-# # whitelist.conf is the file on the share
-# acl domains_''' + workspace +''' dstdomain "/etc/squid/extra.d/''' + workspace + '''.domains.acl"
-
-# # Sets the source networking subnet for the workspace rule
-# acl workspace_''' + workspace + ''' src ''' + network + '''
-
-# # Allow the workspace network to access domains from workspacelist
-# http_access allow workspace_''' + workspace + ''' domains_''' + workspace
 
 def create_acl(workspace):
     lst = []
@@ -86,12 +78,14 @@ n=50
 print('\n\n'+'='*n)
 print(f'Processing: {excel}')
 print('-'*n+'\n')
-for ws in df_workspaces.index:
+
+for ws in tqdm(df_workspaces.index):
     if ws_exist(ws):
         save_file(ws+'.conf', create_conf(ws))
         save_file(ws+'.domains.acl', create_acl(ws))
     else:
         print(f'{ws} does not exist in the hash table')
+                
 print('\n' + '-'*n)
 print(f'Finished, files are created in .\output')
 print('='*n+'\n\n')
