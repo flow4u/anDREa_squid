@@ -4,16 +4,42 @@ import os
 import sys
 from tqdm import tqdm
 import validators
+import configparser
 
 # number of repeating characters for printing
 n=80
 
+# define config
+CONFIG_INI = sys.argv[0][2:-3]+'.ini'
+
+# verify config_ini exists
+try: os.path.exists(CONFIG_INI)
+except:
+    error_message(f'{CONFIG_INI} is missing')
+    exit(0)
+    
+# Read workspace_whitelist.ini
+config = configparser.ConfigParser()
+config.sections()
+config.read(CONFIG_INI)
+
+
 # define default filenames and folders
-FILE_NAME_WRONG_DOMAINS = 'WRONG_DOMAINS.txt'
-FILE_NAME_MISSING_WORKSPACES = 'MISSING_WORKSPACES.txt'
-FOLDER_OUTPUT = './output/'
-CONFIG_TEMPLATE = 'config_template.txt'
-WORKSPACES_CSV = 'workspaces.csv'
+FILE_NAME_WRONG_DOMAINS = config['OUTPUT']['FILE_NAME_WRONG_DOMAINS']
+FILE_NAME_MISSING_WORKSPACES = config['OUTPUT']['FILE_NAME_MISSING_WORKSPACES']
+FOLDER_OUTPUT = config['OUTPUT']['FOLDER_OUTPUT']
+
+CONFIG_TEMPLATE = config['REQUIRED']['CONFIG_TEMPLATE']
+WORKSPACES_CSV = config['REQUIRED']['WORKSPACES_CSV']
+
+SEARCH_WORKSPACE = config['SEARCH_REPLACE']['SEARCH_WORKSPACE']
+SEARCH_NETWORK = config['SEARCH_REPLACE']['SEARCH_NETWORK']
+
+WORKSPACES_NETWORK = config['WORKSPACES']['WORKSPACES_NETWORK']
+
+EXT_CONFIG = config['EXTENSIONS']['EXT_CONFIG']
+EXT_ACL = config['EXTENSIONS']['EXT_ACL']
+
 
 # error message
 def error_message(message):
@@ -60,17 +86,17 @@ with open(CONFIG_TEMPLATE) as f:
 
 def ws_exist(workspace):
     try:
-        network = df_hashtable.loc[workspace]['network']
+        network = df_hashtable.loc[workspace][WORKSPACES_NETWORK]
         return True
     except:
         return False
     
 
 def create_conf(workspace):
-    network = df_hashtable.loc[workspace]['network']
+    network = df_hashtable.loc[workspace][WORKSPACES_NETWORK]
     new_config = config
-    new_config = new_config.replace('{WORKSPACE}', workspace)
-    new_config = new_config.replace('{NETWORK}', network)
+    new_config = new_config.replace(SEARCH_WORKSPACE, workspace)
+    new_config = new_config.replace(SEARCH_NETWORK, network)
     return new_config
     
 
@@ -130,8 +156,8 @@ missing_workspaces = []
 print('\nCreating the .conf and .acl files for known workspaces and valid domains.\n')
 for ws in tqdm(df_workspaces.index):
     if ws_exist(ws):
-        save_file(FOLDER_OUTPUT + ws+'.conf', create_conf(ws))
-        save_file(FOLDER_OUTPUT + ws+'.domains.acl', create_acl(ws))
+        save_file(FOLDER_OUTPUT + ws + EXT_CONFIG, create_conf(ws))
+        save_file(FOLDER_OUTPUT + ws + EXT_ACL, create_acl(ws))
     else:
         missing_workspaces.append(ws)
 
@@ -141,7 +167,7 @@ if len(missing_workspaces) != 0:
     print('\nThe following Workspaces are missing in the hash table:\n\n')
     for item in missing_workspaces:
         print(item)
-    save_file('MISSING_WORKSPACES.txt', '\n'.join(missing_workspaces))    
+    save_file(FILE_NAME_MISSING_WORKSPACES, '\n'.join(missing_workspaces))    
     print(f'\n\nThe list is saved in {FILE_NAME_MISSING_WORKSPACES}') 
     
 print('\n' + '-'*n)
