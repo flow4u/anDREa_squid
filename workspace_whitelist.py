@@ -58,7 +58,7 @@ def create_acl(workspace):
     lst = []
     for value, domain in zip(df_workspaces.loc[workspace], df_workspaces.loc[workspace].index):
         if value.lower() == 'x':
-            lst.append(domain)
+            lst.append('.'+domain)
     return '\n'.join(lst)
 
 def save_file(filename, content):
