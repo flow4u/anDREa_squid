@@ -3,10 +3,17 @@ import pandas as pd
 import os
 import sys
 from tqdm import tqdm
+import validators
 
 # number of repeating characters for printing
 n=60
 
+# define default filenames and folders
+FILE_NAME_WRONG_DOMAINS = 'WRONG_DOMAINS.txt'
+FILE_NAME_MISSING_WORKSPACES = 'MISSING_WORKSPACES.txt'
+FOLDER_OUTPUT = './output/'
+
+# error message
 def error_message(message):
     print('\n\n'+'='*n)
     print(message)
@@ -57,20 +64,32 @@ def create_conf(workspace):
 def create_acl(workspace):
     lst = []
     for value, domain in zip(df_workspaces.loc[workspace], df_workspaces.loc[workspace].index):
-        if value.lower() == 'x':
+        if value.lower() == 'x' and validators.domain(domain):
             lst.append('.'+domain)
     return '\n'.join(lst)
 
+def list_wrong_domains(domains):
+    lst = []
+    for item in domains:
+        if not validators.domain(item):
+            lst.append(item)
+    return '\n'.join(lst)
+                                                   
+                                                      
 def save_file(filename, content):
-    with open('./output/' + filename, 'w') as f:
+    with open(filename, 'w') as f:
         f.write(content)
         
         
-# create output if it doesn't exist
-try:
-    os.mkdir('./output')
-except:
-    pass
+# cleaning up and create output if it doesn't exist
+try: os.remove(FILE_NAME_WRONG_DOMAINS)
+except: pass
+
+try: os.remove(FILE_NAME_MISSING_WORKSPACES)
+except: pass
+
+try: os.mkdir(FOLDER_OUTPUT)
+except: pass
     
 
 # process the excel
@@ -78,14 +97,25 @@ print('\n\n'+'='*n)
 print(f'Processing: {excel}')
 print('-'*n+'\n')
 
+
+# list wrong domains
+wrong_domains = ''
+wrong_domains = list_wrong_domains(df_workspaces.columns)
+if len(wrong_domains) != 0:
+    save_file(FILE_NAME_WRONG_DOMAINS, wrong_domains)
+    print('One or more domains were incorrect and are saved in:')
+    print(FILE_NAME_WRONG_DOMAINS)
+    print('\n' + '-'*n)
+
+
 # list for workspaces missing in the hashtable
 missing_workspaces = []
 
 # created the output
 for ws in tqdm(df_workspaces.index):
     if ws_exist(ws):
-        save_file(ws+'.conf', create_conf(ws))
-        save_file(ws+'.domains.acl', create_acl(ws))
+        save_file(FOLDER_OUTPUT + ws+'.conf', create_conf(ws))
+        save_file(FOLDER_OUTPUT + ws+'.domains.acl', create_acl(ws))
     else:
         missing_workspaces.append(ws)
 
@@ -96,8 +126,8 @@ if len(missing_workspaces) != 0:
     for item in missing_workspaces:
         print(item)
     save_file('MISSING_WORKSPACES.txt', '\n'.join(missing_workspaces))    
-    print('\n\n The list is saved in ./output/MISSING_WORKSPACES.txt') 
+    print(f'\n\n The list is saved in {FILE_NAME_MISSING_WORKSPACES}') 
     
 print('\n' + '-'*n)
-print(f'Finished, files are created in .\output')
+print(f'Finished, files are created in {FOLDER_OUTPUT}')
 print('='*n+'\n\n')
