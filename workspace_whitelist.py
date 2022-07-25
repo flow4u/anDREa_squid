@@ -78,20 +78,26 @@ print('\n\n'+'='*n)
 print(f'Processing: {excel}')
 print('-'*n+'\n')
 
+# list for workspaces missing in the hashtable
 missing_workspaces = []
+
+# created the output
 for ws in tqdm(df_workspaces.index):
     if ws_exist(ws):
         save_file(ws+'.conf', create_conf(ws))
         save_file(ws+'.domains.acl', create_acl(ws))
     else:
         missing_workspaces.append(ws)
-        # print(f'{ws} does not exist in the hash table')
+
+# display and save any missing workspaces
 if len(missing_workspaces) != 0:
     print('\n' + '-'*n)
-    print('The following Workspaces were not processed, they are missing in the hash table:\n\n')
+    print('The following Workspaces are missing in the hash table:\n\n')
     for item in missing_workspaces:
         print(item)
-        
+    save_file('MISSING_WORKSPACES.txt', '\n'.join(missing_workspaces))    
+    print('\n\n The list is saved in ./output/MISSING_WORKSPACES.txt') 
+    
 print('\n' + '-'*n)
 print(f'Finished, files are created in .\output')
 print('='*n+'\n\n')
