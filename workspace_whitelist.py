@@ -12,6 +12,8 @@ n=80
 FILE_NAME_WRONG_DOMAINS = 'WRONG_DOMAINS.txt'
 FILE_NAME_MISSING_WORKSPACES = 'MISSING_WORKSPACES.txt'
 FOLDER_OUTPUT = './output/'
+CONFIG_TEMPLATE = 'config_template.txt'
+WORKSPACES_CSV = 'workspaces.csv'
 
 # error message
 def error_message(message):
@@ -31,15 +33,26 @@ except:
     error_message('Please provide a valid Excel file')
     exit(0)
 
+# check if required files are present
+try: os.path.exists(CONFIG_TEMPLATE)
+except:
+    error_message(f'{CONFIG_TEMPLATE} is missing')
+    exit(0)
+try: os.path.exists(WORKSPACES_CSV)
+except:
+    error_message(f'{WORKSPACES_CSV} is missing')
+    exit(0)
+
+    
     
 # read hash file workspace-network
-df_hashtable = pd.read_csv('workspaces.csv', index_col=0)
+df_hashtable = pd.read_csv(WORKSPACES_CSV, index_col=0)
 
 # read the excel
 df_workspaces = pd.read_excel(excel, index_col=0, keep_default_na=False)
 
 # read config.txt
-with open('config_template.txt') as f:
+with open(CONFIG_TEMPLATE) as f:
     config = f.read()
 
 
@@ -65,8 +78,9 @@ def create_acl(workspace):
     lst = []
     for value, domain in zip(df_workspaces.loc[workspace], df_workspaces.loc[workspace].index):
         if value.lower() == 'x' and validators.domain(domain):
-            lst.append('.'+domain)
-    return '\n'.join(lst)
+            tmp = '.'.join((domain.split('.')[-2:]))
+            lst.append('.'+tmp)
+    return '\n'.join(set(lst))
 
 def list_wrong_domains(domains):
     lst = []
