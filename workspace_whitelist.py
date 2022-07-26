@@ -36,6 +36,7 @@ SEARCH_WORKSPACE = config['SEARCH_REPLACE']['SEARCH_WORKSPACE']
 SEARCH_NETWORK = config['SEARCH_REPLACE']['SEARCH_NETWORK']
 
 WORKSPACES_NETWORK = config['WORKSPACES']['WORKSPACES_NETWORK']
+WORKSPACES_WORKSPACE = config['WORKSPACES']['WORKSPACES_WORKSPACE']
 
 EXT_CONFIG = config['EXTENSIONS']['EXT_CONFIG']
 EXT_ACL = config['EXTENSIONS']['EXT_ACL']
@@ -72,7 +73,7 @@ except:
     
     
 # read hash file workspace-network
-df_hashtable = pd.read_csv(WORKSPACES_CSV, index_col=0)
+df_hashtable = pd.read_csv(WORKSPACES_CSV, index_col=WORKSPACES_WORKSPACE)
 
 # read the excel
 df_workspaces = pd.read_excel(excel, index_col=0, keep_default_na=False)
