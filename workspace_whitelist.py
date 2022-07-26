@@ -10,7 +10,8 @@ import configparser
 n=80
 
 # define config
-CONFIG_INI = sys.argv[0][2:-3]+'.ini'
+# CONFIG_INI = sys.argv[0][0:-3]+'.ini'
+CONFIG_INI = ((sys.argv[0][0:-3]+'.ini').split('\\'))[-1]
 
 # verify config_ini exists
 try: os.path.exists(CONFIG_INI)
