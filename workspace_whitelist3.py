@@ -129,7 +129,7 @@ timestamp = now.strftime("%Y%m%d-%H%M%S")
 # create the output folder
 timestamped_folder = './' + timestamp + '_' + FOLDER_OUTPUT
 os.mkdir(timestamped_folder)
-os.mkdir(timestamped_folder + FOLDER_ACL
+os.mkdir(timestamped_folder + FOLDER_ACL)
             
     
 # process all the excels    
