@@ -32,6 +32,7 @@ FOLDER_INPUT = config['INPUT']['FOLDER_INPUT']
 
 # define default filenames and folders
 FOLDER_OUTPUT = config['OUTPUT']['FOLDER_OUTPUT']
+FOLDER_ACL = 'squid_files/'
 FILE_NAME_WRONG_DOMAINS = config['OUTPUT']['FILE_NAME_WRONG_DOMAINS']
 FILE_NAME_MISSING_WORKSPACES = config['OUTPUT']['FILE_NAME_MISSING_WORKSPACES']
 
@@ -127,8 +128,8 @@ timestamp = now.strftime("%Y%m%d-%H%M%S")
             
 # create the output folder
 timestamped_folder = './' + timestamp + '_' + FOLDER_OUTPUT
-try: os.mkdir(timestamped_folder)
-except: pass
+os.mkdir(timestamped_folder)
+os.mkdir(timestamped_folder + FOLDER_ACL
             
     
 # process all the excels    
@@ -159,8 +160,8 @@ for excel in tqdm(excels):
 
     for ws in tqdm(df_workspaces.index):
         if df_workspaces.loc[ws][WORKSPACES_PROCESS].lower() == 'x':
-            save_file(timestamped_folder + ws + EXT_CONFIG, create_conf(ws))
-            save_file(timestamped_folder + ws + EXT_ACL, create_acl(ws))
+            save_file(timestamped_folder + FOLDER_ACL + ws + EXT_CONFIG, create_conf(ws))
+            save_file(timestamped_folder + FOLDER_ACL + ws + EXT_ACL, create_acl(ws))
     os.rename(FOLDER_INPUT + '/' + excel, timestamped_folder + excel)
     
 print('\n' + '-'*n)
