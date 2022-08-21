@@ -5,6 +5,8 @@ import sys
 from tqdm import tqdm
 import validators
 import configparser
+from datetime import datetime
+
 
 # number of repeating characters for printing
 n=80
@@ -25,13 +27,15 @@ config.sections()
 config.read(CONFIG_INI)
 
 
+# define default folder for excels
+FOLDER_INPUT = config['INPUT']['FOLDER_INPUT']
+
 # define default filenames and folders
+FOLDER_OUTPUT = config['OUTPUT']['FOLDER_OUTPUT']
 FILE_NAME_WRONG_DOMAINS = config['OUTPUT']['FILE_NAME_WRONG_DOMAINS']
 FILE_NAME_MISSING_WORKSPACES = config['OUTPUT']['FILE_NAME_MISSING_WORKSPACES']
-FOLDER_OUTPUT = config['OUTPUT']['FOLDER_OUTPUT']
 
 CONFIG_TEMPLATE = config['REQUIRED']['CONFIG_TEMPLATE']
-WORKSPACES_CSV = config['REQUIRED']['WORKSPACES_CSV']
 
 SEARCH_WORKSPACE = config['SEARCH_REPLACE']['SEARCH_WORKSPACE']
 SEARCH_NETWORK = config['SEARCH_REPLACE']['SEARCH_NETWORK']
@@ -53,57 +57,40 @@ def error_message(message):
     print('\n'+'='*n+'\n\n')
 
 
-# check if Excel is given
-try:
-    excel = sys.argv[1]
-    os.path.exists(excel)
-    if excel[-5:] != '.xlsx': a = 1/0
-except:
-    error_message('Please provide a valid Excel file')
+# check if Excel if one or more Excels to be processed are present
+## just to make sure the required directory exists
+try: os.mkdir(FOLDER_INPUT)
+except: pass
+
+## list to store files
+excels = []
+## Iterate directory
+for file in os.listdir(FOLDER_INPUT):
+    # check only text files
+    if file.endswith('.xlsx'):
+        excels.append(file)
+if not excels:
+    error_message('Please add one or more excels in the folder '+FOLDER_INPUT)
     exit(0)
+print(excels)
+
+
 
 # check if required files are present
 try: os.path.exists(CONFIG_TEMPLATE)
 except:
     error_message(f'{CONFIG_TEMPLATE} is missing')
     exit(0)
-try: os.path.exists(WORKSPACES_CSV)
-except:
-    error_message(f'{WORKSPACES_CSV} is missing')
-    exit(0)
 
-    
-    
-# read hash file workspace-network
-df_hashtable = pd.read_csv(WORKSPACES_CSV, index_col=WORKSPACES_WORKSPACE)
-
-# read the excel
-df_workspaces = pd.read_excel(excel, index_col=0, keep_default_na=False)
-
-# read config.txt
-with open(CONFIG_TEMPLATE) as f:
-    config = f.read()
-
-
-# functions to process the data
-
-def ws_exist(workspace):
-    try:
-        network = df_hashtable.loc[workspace][WORKSPACES_NETWORK]
-        return True
-    except:
-        return False
-    
-
+# function to create the config files
 def create_conf(workspace):
-    # network = df_hashtable.loc[workspace][WORKSPACES_NETWORK]
     network = df_workspaces.loc[workspace][WORKSPACES_NETWORK]
     new_config = config
     new_config = new_config.replace(SEARCH_WORKSPACE, workspace)
     new_config = new_config.replace(SEARCH_NETWORK, network)
     return new_config
     
-
+# function to create the acl files
 def create_acl(workspace):
     lst = []
     for value, domain in zip(df_workspaces.loc[workspace], df_workspaces.loc[workspace].index):
@@ -112,6 +99,8 @@ def create_acl(workspace):
             lst.append('.'+tmp)
     return '\n'.join(set(lst))
 
+
+# function to list all the wrong domains
 def list_wrong_domains(domains):
     lst = []
     for i, item in enumerate(domains):
@@ -119,64 +108,61 @@ def list_wrong_domains(domains):
             excel_col = f'{chr(65+i//26-1) if i>25 else ""}{chr(65+i%26)}'
             lst.append(f'{excel_col}: {item}')
     return '\n'.join(lst)
-                                                   
-                                                      
+    
+# read config.txt
+with open(CONFIG_TEMPLATE) as f:
+    config = f.read()
+    
+    
+# generic function to save a file
 def save_file(filename, content):
     with open(filename, 'w') as f:
         f.write(content)
-        
-        
-# cleaning up and create output if it doesn't exist
-try: os.remove(FILE_NAME_WRONG_DOMAINS)
-except: pass
+            
 
-try: os.remove(FILE_NAME_MISSING_WORKSPACES)
+# create timestamp string
+now = datetime.now() # current date and time
+timestamp = now.strftime("%Y%m%d-%H%M%S")
+            
+            
+# create the output folder
+timestamped_folder = './' + timestamp + '_' + FOLDER_OUTPUT
+try: os.mkdir(timestamped_folder)
 except: pass
-
-try: os.mkdir(FOLDER_OUTPUT)
-except: pass
+            
     
+# process all the excels    
+for excel in tqdm(excels):    
+    # read the excel
+    df_workspaces = pd.read_excel(FOLDER_INPUT + '/' + excel, index_col=0, keep_default_na=False)    
 
-# process the excel
-print('\n\n'+'='*n)
-print(f'Processing: {excel}')
-print('-'*n+'\n')
+    # process the excel
+    print('\n\n'+'='*n)
+    print(f'Processing: {excel}')
+    print('-'*n+'\n')
+
+    # list wrong domains
+    wrong_domains = ''
+    wrong_domains = list_wrong_domains(df_workspaces.columns[2:])
+    if len(wrong_domains) != 0:
+        wrong_domains_excel = timestamped_folder + excel[:-5] + '_' + FILE_NAME_WRONG_DOMAINS
+        save_file(wrong_domains_excel, wrong_domains)
+        print('One or more domains were incorrect and are saved in:')
+        print(wrong_domains_excel)
+        print('\n' + '-'*n)
 
 
-# list wrong domains
-wrong_domains = ''
-wrong_domains = list_wrong_domains(df_workspaces.columns[2:])
-if len(wrong_domains) != 0:
-    save_file(FILE_NAME_WRONG_DOMAINS, wrong_domains)
-    print('One or more domains were incorrect and are saved in:')
-    print(FILE_NAME_WRONG_DOMAINS)
-    print('\n' + '-'*n)
-
-
-# list for workspaces missing in the hashtable
-missing_workspaces = []
-
-# created the output
-print('\nCreating the .conf and .acl files for known workspaces and valid domains.\n')
+    # created the output
+    print('\nCreating the .conf and .acl files for known workspaces and valid domains.\n')
 # for ws in tqdm(df_workspaces.index):
     # if ws_exist(ws):
 
-for ws in tqdm(df_workspaces.index):
-    if df_workspaces.loc[ws][WORKSPACES_PROCESS].lower() == 'x':
-        save_file(FOLDER_OUTPUT + ws + EXT_CONFIG, create_conf(ws))
-        save_file(FOLDER_OUTPUT + ws + EXT_ACL, create_acl(ws))
-    # else:
-    #     missing_workspaces.append(ws)
-
-# display and save any missing workspaces
-if len(missing_workspaces) != 0:
-    print('\n' + '-'*n)
-    print('\nThe following Workspaces are missing in the hash table:\n\n')
-    for item in missing_workspaces:
-        print(item)
-    save_file(FILE_NAME_MISSING_WORKSPACES, '\n'.join(missing_workspaces))    
-    print(f'\n\nThe list is saved in {FILE_NAME_MISSING_WORKSPACES}') 
+    for ws in tqdm(df_workspaces.index):
+        if df_workspaces.loc[ws][WORKSPACES_PROCESS].lower() == 'x':
+            save_file(timestamped_folder + ws + EXT_CONFIG, create_conf(ws))
+            save_file(timestamped_folder + ws + EXT_ACL, create_acl(ws))
+    os.rename(FOLDER_INPUT + '/' + excel, timestamped_folder + excel)
     
 print('\n' + '-'*n)
-print(f'Finished, files are created in {FOLDER_OUTPUT}')
+print(f'Finished, files are created in {timestamped_folder}')
 print('='*n+'\n\n')

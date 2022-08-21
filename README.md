@@ -14,30 +14,22 @@ or
 
 
 ## Notes
-- All variables used are in workspace_whitelist.ini
-- workspace_whitelist.py can be renamed, but the ini must have the same name with .py replaced with .ini
+- All variables used are in workspace_whitelist3.ini
+- workspace_whitelist3.py can be renamed, but the ini must have the same name with .py replaced with .ini
 
 ## Instructions:
 - Correct any typos in config_template.txt using a plain text editor
 - Make changes in the .ini if needed using a plain text editor
+- All Excels to be processed must be stored in the subfolder as named in the .ini
+   - run python workspace_whitelist3.py once to create the folder
 - Use the dws_squid.xlsx as template/example.  To process:
 
-> python .\workspace_whitelist.py [filename].xlsx
+> python .\workspace_whitelist3.py
 
-*E.g.:*
-> python .\workspace_whitelist.py dws_squid.xlsx
-    
-    
-- If present, the MISSING_WORKSPACES.txt will be deleted
-- If present, the WRONG_DOMAINS.txt will be deleted
-- If applicable, the MISSING_WORKSPACES.txt will be created in main folder
-- If applicable, the WRONG_DOMAINS.txt will be created in main folder
-- all output files will be put in a subfolder .\output
-- upload all the files
-- delete the subfolder
-
+- all output files will be put in a subfolder .\<yyyymmdd-hhmmss>_output
+- If applicable, the <excel>_WRONG_DOMAINS.txt will be added there
+- the processed Excels will be moved to there as well
 
 ## Error logging
 The following text files are used to display errors encountered:
-- MISSING_WORKSPACES.txt  (workspaces not in the hash table)
-- WRONG_DOMAINS.txt       (domains not meeting URL validator)
+- <excel>_WRONG_DOMAINS.txt       (domains not meeting URL validator)

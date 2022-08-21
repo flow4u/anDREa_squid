@@ -1,4 +1,0 @@
-.wrong.url
-bbc.com/subsite
-https://wwww.google.com
-https://google.com
