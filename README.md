@@ -1,7 +1,7 @@
 # anDREa_squid
 
 ## Required modules
-- pandas, tqdm, os, sys, validators, configparser
+- pandas, tqdm, os, sys, validators, openpyxl, configparser
 
 Intall via:
 > conda install -c conda-forge [module]
@@ -33,3 +33,15 @@ or
 ## Error logging
 The following text files are used to display errors encountered:
 - <excel>_WRONG_DOMAINS.txt       (domains not meeting URL validator)
+
+
+# Getting the Workspace - Subnet
+
+The powershell script:
+
+> wsname_network.ps1
+
+can run in the Azure Cloud Shell.  Maybe it is necessary to run the following command first:
+
+> Connect-AzAccount
+
