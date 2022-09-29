@@ -160,8 +160,9 @@ for excel in tqdm(excels):
 
     for ws in tqdm(df_workspaces.index):
         if df_workspaces.loc[ws][WORKSPACES_PROCESS].lower() == 'x':
-            save_file(timestamped_folder + FOLDER_ACL + ws + EXT_CONFIG, create_conf(ws))
-            save_file(timestamped_folder + FOLDER_ACL + ws + EXT_ACL, create_acl(ws))
+            ws2 = ws.replace('-', '')
+            save_file(timestamped_folder + FOLDER_ACL + ws2 + EXT_CONFIG, create_conf(ws2))
+            save_file(timestamped_folder + FOLDER_ACL + ws2 + EXT_ACL, create_acl(ws2))
     os.rename(FOLDER_INPUT + '/' + excel, timestamped_folder + excel)
     
 print('\n' + '-'*n)
