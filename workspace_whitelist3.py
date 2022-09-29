@@ -142,6 +142,9 @@ for excel in tqdm(excels):
     print(f'Processing: {excel}')
     print('-'*n+'\n')
 
+    # ensure no dahses in the workspace names
+    df_workspaces.index = df_workspaces.index.str.replace('-','')
+    
     # list wrong domains
     wrong_domains = ''
     wrong_domains = list_wrong_domains(df_workspaces.columns[2:])
