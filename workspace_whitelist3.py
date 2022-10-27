@@ -95,9 +95,13 @@ def create_conf(workspace):
 def create_acl(workspace):
     lst = []
     for value, domain in zip(df_workspaces.loc[workspace], df_workspaces.loc[workspace].index):
-        if value.lower() == 'x' and validators.domain(domain):
-            tmp = '.'.join((domain.split('.')[-2:]))
-            lst.append('.'+tmp)
+        # if value.lower() == 'x' and validators.domain(domain):
+        domain='.'.join(filter(None, domain.split('.')))
+        if value.lower() == 'x' and validators.domain(domain) and not domain.lower().split('.').count('www'):
+            # tmp = '.'.join((domain.split('.')[-3:]))
+            # tmp = '.'.join(domain.split('.'))
+            # lst.append('.'+tmp)
+            lst.append('.'+'.'.join(domain.split('.')))
     return '\n'.join(set(lst))
 
 
@@ -105,8 +109,10 @@ def create_acl(workspace):
 def list_wrong_domains(domains):
     lst = []
     for i, item in enumerate(domains):
-        if not validators.domain(item):
-            excel_col = f'{chr(65+i//26-1) if i>25 else ""}{chr(65+i%26)}'
+        item='.'.join(filter(None, item.split('.')))
+        if not validators.domain(item) or item.lower().split('.').count('www'):
+            # print(f"{item=}  {item.lower().split('.').count('www')}")
+            excel_col = f'{chr(65+i//26+3) if i>25 else ""}{chr(65+i%26+3)}'
             lst.append(f'{excel_col}: {item}')
     return '\n'.join(lst)
     
@@ -117,7 +123,8 @@ with open(CONFIG_TEMPLATE) as f:
     
 # generic function to save a file
 def save_file(filename, content):
-    with open(filename, 'w') as f:
+    print(f'{filename=}')
+    with open(filename, 'w', encoding='utf-8') as f:
         f.write(content)
             
 
