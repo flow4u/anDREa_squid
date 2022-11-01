@@ -6,6 +6,7 @@ from tqdm import tqdm
 import validators
 import configparser
 from datetime import datetime
+import shutil
 
 
 # number of repeating characters for printing
@@ -98,9 +99,6 @@ def create_acl(workspace):
         # if value.lower() == 'x' and validators.domain(domain):
         domain='.'.join(filter(None, domain.split('.')))
         if value.lower() == 'x' and validators.domain(domain) and not domain.lower().split('.').count('www'):
-            # tmp = '.'.join((domain.split('.')[-3:]))
-            # tmp = '.'.join(domain.split('.'))
-            # lst.append('.'+tmp)
             lst.append('.'+'.'.join(domain.split('.')))
     return '\n'.join(set(lst))
 
@@ -165,14 +163,13 @@ for excel in tqdm(excels):
 
     # created the output
     print('\nCreating the .conf and .acl files for known workspaces and valid domains.\n')
-# for ws in tqdm(df_workspaces.index):
-    # if ws_exist(ws):
 
     for ws in tqdm(df_workspaces.index):
-        if df_workspaces.loc[ws][WORKSPACES_PROCESS].lower() == 'x':
+        if ws and df_workspaces.loc[ws][WORKSPACES_PROCESS].lower() == 'x':
             ws2 = ws.replace('-', '')
             save_file(timestamped_folder + FOLDER_ACL + ws2 + EXT_CONFIG, create_conf(ws2))
             save_file(timestamped_folder + FOLDER_ACL + ws2 + EXT_ACL, create_acl(ws2))
+    shutil.make_archive(timestamped_folder + FOLDER_ACL, format='zip', root_dir=timestamped_folder + FOLDER_ACL)
     os.rename(FOLDER_INPUT + '/' + excel, timestamped_folder + excel)
     
 print('\n' + '-'*n)
