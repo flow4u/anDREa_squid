@@ -11,6 +11,8 @@ import shutil
 
 # number of repeating characters for printing
 n=80
+VERSION='1.7'
+print(f'{VERSION=}')
 
 # define config
 # CONFIG_INI = sys.argv[0][0:-3]+'.ini'
@@ -55,7 +57,7 @@ def error_message(message):
     print('\n\n'+'='*n)
     print(message)
     print('\n\nExample:\n')
-    print('python .\workspace_whitelist.py dws_squid.xlsx')
+    print('python .\workspace_whitelist.py')
     print('\n'+'='*n+'\n\n')
 
 
@@ -96,23 +98,46 @@ def create_conf(workspace):
 def create_acl(workspace):
     lst = []
     for value, domain in zip(df_workspaces.loc[workspace], df_workspaces.loc[workspace].index):
-        # if value.lower() == 'x' and validators.domain(domain):
-        domain='.'.join(filter(None, domain.split('.')))
-        if value.lower() == 'x' and validators.domain(domain) and not domain.lower().split('.').count('www'):
+        domain='.'.join(filter(None, domain.split('.'))).replace(' ','').lower()
+        if (
+            value.lower() == 'x' and
+            validators.domain(domain)
+        ):
             lst.append('.'+'.'.join(domain.split('.')))
     return '\n'.join(set(lst))
 
 
+# function to check existance of sub and main domains
+def subdomain_exist(domain, domains):
+    domains_list = list(domains.to_series())
+    # domains_lst = tmp.squeeze()
+    temp_list = domains_list.copy()
+    # print(f'{domain=}')
+    temp_list.remove(domain)
+    for item in temp_list:
+        if item[-len(domain):].replace(' ','').lower() == domain.replace(' ','').lower(): return True
+    return False
+
+
 # function to list all the wrong domains
 def list_wrong_domains(domains):
-    lst = []
+    lst_wrong = []
+    lst_wright = []
     for i, item in enumerate(domains):
-        item='.'.join(filter(None, item.split('.')))
-        if not validators.domain(item) or item.lower().split('.').count('www'):
-            # print(f"{item=}  {item.lower().split('.').count('www')}")
-            excel_col = f'{chr(65+i//26+3) if i>25 else ""}{chr(65+i%26+3)}'
-            lst.append(f'{excel_col}: {item}')
-    return '\n'.join(lst)
+        item_original = item
+        item='.'.join(filter(None, item.split('.'))).replace(' ','').lower()
+        sub_exists = subdomain_exist(item_original, domains)
+        if (
+            not validators.domain(item) or
+            item.lower().split('.').count('www') or
+            sub_exists
+        ):
+            add_msg=""
+            if sub_exists: add_msg = "(subdomain exists)"
+            excel_col = f'{chr(64+(i+3)//26) if i>22 else ""}{chr(65+(i+3)%26)}'
+            lst_wrong.append(f'{excel_col}: {item} {add_msg}')
+            df_workspaces.drop(item_original, axis=1, inplace=True)
+    return '\n'.join(lst_wrong)
     
 # read config.txt
 with open(CONFIG_TEMPLATE) as f:
@@ -149,10 +174,12 @@ for excel in tqdm(excels):
 
     # ensure no dahses in the workspace names
     df_workspaces.index = df_workspaces.index.str.replace('-','')
+    print(f'{df_workspaces.shape=}')
     
     # list wrong domains
     wrong_domains = ''
     wrong_domains = list_wrong_domains(df_workspaces.columns[2:])
+    print(f'{df_workspaces.shape=}')
     if len(wrong_domains) != 0:
         wrong_domains_excel = timestamped_folder + excel[:-5] + '_' + FILE_NAME_WRONG_DOMAINS
         save_file(wrong_domains_excel, wrong_domains)
